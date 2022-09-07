@@ -77,7 +77,7 @@ public class UserDaoJDBCImpl implements UserDao {
             prSt.setString(3, String.valueOf(age));
             prSt.executeUpdate();
             conn.commit();
-            System.out.println("User с именем – " + name + " добавлен в базу данных");
+            System.out.println("User with name - " + name + " is added to database");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
