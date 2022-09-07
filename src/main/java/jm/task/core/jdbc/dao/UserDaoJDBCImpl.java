@@ -20,7 +20,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        String query = "CREATE TABLE " + TABLE_NAME + " ("
+        String query = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ("
                 + ID_FIELD + " INT PRIMARY KEY AUTO_INCREMENT, "
                 + NAME_FIELD + " VARCHAR(255) NOT NULL, "
                 + LASTNAME_FIELD + " VARCHAR(255) NOT NULL, "
@@ -33,26 +33,19 @@ public class UserDaoJDBCImpl implements UserDao {
             PreparedStatement prSt = conn.prepareStatement(query);
             prSt.executeUpdate();
             conn.commit();
-            conn.close();
-        } catch (SQLSyntaxErrorException e) {
-            System.out.println("Таблица с таким именем уже существует");
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
         } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
             e.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     public void dropUsersTable() {
-        String query = "DROP TABLE " + TABLE_NAME;
+        String query = "DROP TABLE IF EXISTS " + TABLE_NAME;
         Connection conn = null;
         try {
             conn = Util.getDbConnection();
@@ -60,21 +53,14 @@ public class UserDaoJDBCImpl implements UserDao {
             PreparedStatement prSt = conn.prepareStatement(query);
             prSt.executeUpdate();
             conn.commit();
-            conn.close();
-        } catch (SQLSyntaxErrorException e) {
-            System.out.println("Таблицы с таким именем не существует");
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
         } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
             e.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -91,15 +77,15 @@ public class UserDaoJDBCImpl implements UserDao {
             prSt.setString(3, String.valueOf(age));
             prSt.executeUpdate();
             conn.commit();
-            conn.close();
             System.out.println("User с именем – " + name + " добавлен в базу данных");
         } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
             e.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -112,81 +98,39 @@ public class UserDaoJDBCImpl implements UserDao {
             PreparedStatement prSt = conn.prepareStatement(query);
             prSt.executeUpdate();
             conn.commit();
-            conn.close();
         } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
             e.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     public List<User> getAllUsers() {
-        ResultSet resSet = null;
+        ResultSet resSet;
+        List<User> usersList = new ArrayList<>();
         String query = "SELECT * FROM " + TABLE_NAME;
-        Connection conn = null;
-        try {
-            conn = Util.getDbConnection();
-            conn.setAutoCommit(false);
+        try (Connection conn = Util.getDbConnection()) {
             PreparedStatement prSt = conn.prepareStatement(query);
             resSet = prSt.executeQuery();
-        } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-            e.printStackTrace();
-        }
-
-        List<User> usersList = new ArrayList<>();
-
-        try {
             while (resSet.next()) {
                 usersList.add(new User(resSet.getInt(ID_FIELD),
                         resSet.getString(NAME_FIELD),
                         resSet.getString(LASTNAME_FIELD),
                         resSet.getByte(AGE_FIELD)));
             }
-            conn.commit();
-            conn.close();
-        } catch (SQLException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
             return null;
         }
         return usersList;
     }
 
     public void cleanUsersTable() {
-        String query = "TRUNCATE TABLE " + TABLE_NAME;
-        Connection conn = null;
-        try {
-            conn = Util.getDbConnection();
-            conn.setAutoCommit(false);
-            PreparedStatement prSt = conn.prepareStatement(query);
-            prSt.executeUpdate();
-            conn.commit();
-            conn.close();
-        } catch (SQLSyntaxErrorException e) {
-            System.out.println("Таблицы с таким именем не существует");
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-            e.printStackTrace();
-        }
+        dropUsersTable();
+        createUsersTable();
     }
 }
