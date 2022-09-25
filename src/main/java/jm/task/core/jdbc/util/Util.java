@@ -12,8 +12,14 @@ public class Util {
     private static final String DB_PASS = "root";
     private static final String DB_NAME = "katatraining";
 
-    public static Connection getDbConnection() throws SQLException, ClassNotFoundException {
+    public static Connection getDbConnection() {
         String connectionString = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
-        return DriverManager.getConnection(connectionString, DB_USER, DB_PASS);
+        Connection conn;
+        try {
+            conn = DriverManager.getConnection(connectionString, DB_USER, DB_PASS);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return conn;
     }
 }
