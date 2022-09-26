@@ -20,6 +20,6 @@ public class Main {
         List<User> users = userService.getAllUsers();
         System.out.println("all users: " + users);
         userService.cleanUsersTable();
-        userService.dropUsersTable();
+//        userService.dropUsersTable();
     }
 }

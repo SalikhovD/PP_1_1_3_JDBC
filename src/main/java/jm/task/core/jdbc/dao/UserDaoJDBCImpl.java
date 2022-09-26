@@ -119,7 +119,22 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        dropUsersTable();
-        createUsersTable();
+        String query = "DELETE FROM " + TABLE_NAME;
+        try (Connection conn = Util.getDbConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement prSt = conn.prepareStatement(query)) {
+                prSt.executeUpdate();
+                conn.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                try {
+                    conn.rollback();
+                } catch (SQLException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
